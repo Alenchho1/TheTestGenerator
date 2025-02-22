@@ -1,0 +1,103 @@
+@model TestGenerator.ViewModels.QuestionViewModel
+
+@{
+    ViewData["Title"] = "Създаване на въпрос с избираем отговор";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h5 mb-0"><i class="bi bi-list-check"></i> Нов въпрос с избираем отговор</h2>
+            </div>
+            <div class="card-body">
+                <form asp-action="CreateMultipleChoice" method="post" enctype="multipart/form-data" novalidate>
+                    <input type="hidden" name="Type" value="@TestGenerator.Models.QuestionType.MultipleChoice" />
+
+                    <div class="mb-3">
+                        <label for="Content" class="form-label">Текст на въпроса</label>
+                        <textarea name="Content" class="form-control" rows="3" required
+                                 title="Моля, въведете текст на въпроса"></textarea>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="CategoryId" class="form-label">Категория</label>
+                            <select name="CategoryId" class="form-select" required
+                                    title="Моля, изберете категория">
+                                <option value="">Избери категория</option>
+                                @foreach (var category in ViewBag.Categories)
+                                {
+                                    <option value="@category.Value">@category.Text</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="Points" class="form-label">Точки</label>
+                            <input name="Points" class="form-control" type="number" min="1" max="100" required
+                                   title="Точките трябва да бъдат между 1 и 100" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="DifficultyLevel" class="form-label">Ниво на трудност</label>
+                            <select name="DifficultyLevel" class="form-select" required
+                                    title="Моля, изберете ниво на трудност">
+                                <option value="">Избери трудност</option>
+                                <option value="1">Лесно</option>
+                                <option value="2">По-лесно</option>
+                                <option value="3">Средно</option>
+                                <option value="4">По-трудно</option>
+                                <option value="5">Трудно</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="Image" class="form-label">Картинка към въпроса</label>
+                        <input name="Image" class="form-control" type="file" accept="image/*" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Възможни отговори</label>
+                        <div id="answersContainer">
+                            @for (var i = 0; i < 4; i++)
+                            {
+                                <div class="card mb-2">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col">
+                                                <input type="text" name="Answers[@i].Content" 
+                                                       class="form-control" required
+                                                       title="Моля, въведете текст за отговор @(i + 1)"
+                                                       placeholder="Отговор @(i + 1)" />
+                                            </div>
+                                            <div class="col-auto">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" 
+                                                           name="correctAnswerIndex" value="@i"
+                                                           required
+                                                           title="Моля, изберете верния отговор" />
+                                                    <label class="form-check-label">Верен отговор</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="@Url.Action("Create")" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Назад
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Създай въпрос
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div> 

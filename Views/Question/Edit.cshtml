@@ -1,0 +1,233 @@
+@model TestGenerator.ViewModels.QuestionViewModel
+
+@{
+    ViewData["Title"] = "Редактиране на въпрос";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h5 mb-0"><i class="bi bi-pencil"></i> Редактиране на въпрос</h2>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data" novalidate>
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="Type" />
+                    <input type="hidden" asp-for="ExistingImagePath" />
+
+                    <div class="mb-3">
+                        <label asp-for="Content" class="form-label">Текст на въпроса</label>
+                        <textarea asp-for="Content" class="form-control" rows="3" required
+                                 title="Моля, въведете текст на въпроса"></textarea>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label asp-for="CategoryId" class="form-label">Категория</label>
+                            <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories" required
+                                    title="Моля, изберете категория">
+                                <option value="">Избери категория</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Points" class="form-label">Точки</label>
+                            <input asp-for="Points" class="form-control" type="number" min="1" max="100" required
+                                   title="Точките трябва да бъдат между 1 и 100" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="DifficultyLevel" class="form-label">Ниво на трудност</label>
+                            <div class="star-rating">
+                                @for (int i = 5; i >= 1; i--)
+                                {
+                                    <input type="radio" id="star@(i)" name="DifficultyLevel" value="@i" 
+                                           @(Model.DifficultyLevel == i ? "checked" : "") required
+                                           title="Моля, изберете ниво на трудност" />
+                                    <label for="star@(i)" title="@i stars">★</label>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Image" class="form-label">Картинка към въпроса</label>
+                        <input asp-for="Image" class="form-control" type="file" accept="image/*" onchange="previewImage(event)" />
+                        <small class="text-muted">Качи нова картинка, ако искате да промените съществуващата</small>
+                        
+                        <div id="imagePreview" class="mt-2 @(string.IsNullOrEmpty(Model.ExistingImagePath) ? "d-none" : "")">
+                            <img src="@Model.ExistingImagePath" class="img-thumbnail" style="max-height: 200px;" />
+                        </div>
+                    </div>
+
+                    @if (Model.Type == TestGenerator.Models.QuestionType.MultipleChoice)
+                    {
+                        <div id="multipleChoiceSection">
+                            <h5 class="mb-3">Възможни отговори</h5>
+                            <div id="answerContainer">
+                                @for (int i = 0; i < Math.Max(4, Model.Answers?.Count ?? 0); i++)
+                                {
+                                    var answer = i < (Model.Answers?.Count ?? 0) ? Model.Answers[i] : new TestGenerator.ViewModels.AnswerViewModel();
+                                    <div class="card mb-2">
+                                        <div class="card-body">
+                                            <div class="row align-items-center">
+                                                <div class="col">
+                                                    <input type="text" class="form-control" 
+                                                           name="Answers[@i].Content" 
+                                                           value="@answer.Content"
+                                                           placeholder="Отговор @(i + 1)" required
+                                                           title="Моля, въведете текст за отговор @(i + 1)" />
+                                                    <input type="hidden" name="Answers[@i].IsCorrect" value="false" />
+                                                </div>
+                                                <div class="col-auto">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" 
+                                                               name="correctAnswerIndex" value="@i"
+                                                               @(answer.IsCorrect ? "checked" : "") required
+                                                               title="Моля, изберете верния отговор"
+                                                               onclick="updateCorrectAnswers(@i)" />
+                                                        <label class="form-check-label">Верен отговор</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div id="openEndedSection">
+                            <div class="alert alert-info">
+                                <h6><i class="bi bi-info-circle"></i> Как работи оценяването?</h6>
+                                <ul class="mb-0">
+                                    <li>Точно съвпадение с верния отговор = 100% от точките</li>
+                                    <li>≥90% от ключовите думи = 100% от точките</li>
+                                    <li>≥75% от ключовите думи = 75% от точките</li>
+                                    <li>≥50% от ключовите думи = 50% от точките</li>
+                                    <li>≥25% от ключовите думи = 25% от точките</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="CorrectAnswer" class="form-label">Верен отговор</label>
+                                <textarea asp-for="CorrectAnswer" class="form-control" rows="3" required
+                                         title="Моля, въведете верния отговор"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Keywords" class="form-label">Ключови думи за оценяване</label>
+                                <input asp-for="Keywords" class="form-control" required 
+                                       placeholder="Въведете ключови думи, разделени със запетая"
+                                       title="Моля, въведете поне една ключова дума" />
+                                <small class="text-muted">Пример: алгоритъм, сложност, време, памет</small>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Назад
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Запази промените
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function previewImage(event) {
+            const preview = document.querySelector('#imagePreview img');
+            const previewContainer = document.querySelector('#imagePreview');
+            const file = event.target.files[0];
+            
+            if (file) {
+                preview.src = URL.createObjectURL(file);
+                previewContainer.classList.remove('d-none');
+            } else {
+                preview.src = '#';
+                previewContainer.classList.add('d-none');
+            }
+        }
+
+        function toggleAnswerSection() {
+            const type = document.getElementById('Type').value;
+            const multipleChoiceSection = document.getElementById('multipleChoiceSection');
+            const openEndedSection = document.getElementById('openEndedSection');
+
+            if (type === '@TestGenerator.Models.QuestionType.MultipleChoice') {
+                multipleChoiceSection.style.display = 'block';
+                openEndedSection.style.display = 'none';
+            } else {
+                multipleChoiceSection.style.display = 'none';
+                openEndedSection.style.display = 'block';
+            }
+        }
+
+        function updateDifficultyStars(value) {
+            const starsContainer = document.getElementById('difficultyStars');
+            starsContainer.innerHTML = '';
+            
+            for (let i = 0; i < 5; i++) {
+                const star = document.createElement('i');
+                star.className = `bi bi-star${i < value ? '-fill' : ''} ${i < value ? 'text-warning' : 'text-muted'}`;
+                starsContainer.appendChild(star);
+            }
+        }
+
+        function updateCorrectAnswers(selectedIndex) {
+            const inputs = document.querySelectorAll('input[name^="Answers"][name$="IsCorrect"]');
+            inputs.forEach((input, index) => {
+                input.value = index === selectedIndex;
+            });
+        }
+    </script>
+}
+
+@section Styles {
+    <style>
+        /* Star Rating */
+        .star-rating {
+            display: inline-flex;
+            flex-direction: row-reverse;
+            font-size: 1.5em;
+            justify-content: flex-end;
+            padding: 0 0.2em;
+            text-align: center;
+        }
+
+        .star-rating input {
+            display: none;
+        }
+
+        .star-rating label {
+            color: #ddd;
+            cursor: pointer;
+            padding: 0 0.1em;
+            transition: color 0.3s;
+        }
+
+        .star-rating input:checked ~ label {
+            color: #ffd700;
+        }
+
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: #ffd700;
+        }
+
+        .star-rating input:checked + label:hover,
+        .star-rating input:checked ~ label:hover,
+        .star-rating label:hover ~ input:checked ~ label,
+        .star-rating input:checked ~ label:hover ~ label {
+            color: #ffd900;
+        }
+    </style>
+} 

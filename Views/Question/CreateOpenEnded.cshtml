@@ -1,0 +1,101 @@
+@model TestGenerator.ViewModels.QuestionViewModel
+
+@{
+    ViewData["Title"] = "Създаване на въпрос със свободен отговор";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h5 mb-0"><i class="bi bi-pencil-square"></i> Нов въпрос със свободен отговор</h2>
+            </div>
+            <div class="card-body">
+                <form asp-action="CreateOpenEnded" method="post" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                    
+                    <input type="hidden" asp-for="Type" value="@TestGenerator.Models.QuestionType.OpenEnded" />
+
+                    <div class="mb-3">
+                        <label asp-for="Content" class="form-label">Текст на въпроса</label>
+                        <textarea asp-for="Content" class="form-control" rows="3" required></textarea>
+                        <span asp-validation-for="Content" class="text-danger"></span>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label asp-for="CategoryId" class="form-label">Категория</label>
+                            <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories" required>
+                                <option value="">Избери категория</option>
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Points" class="form-label">Точки</label>
+                            <input asp-for="Points" class="form-control" type="number" min="1" max="100" required />
+                            <span asp-validation-for="Points" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="DifficultyLevel" class="form-label">Ниво на трудност</label>
+                            <select asp-for="DifficultyLevel" class="form-select" required>
+                                <option value="">Избери трудност</option>
+                                <option value="1">Лесно</option>
+                                <option value="2">По-лесно</option>
+                                <option value="3">Средно</option>
+                                <option value="4">По-трудно</option>
+                                <option value="5">Трудно</option>
+                            </select>
+                            <span asp-validation-for="DifficultyLevel" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Image" class="form-label">Картинка към въпроса</label>
+                        <input asp-for="Image" class="form-control" type="file" accept="image/*" />
+                        <small class="text-muted">Качи картинка, ако въпросът изисква визуален контекст (по желание)</small>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <h6><i class="bi bi-info-circle"></i> Как работи оценяването?</h6>
+                                <ul class="mb-0">
+                                    <li>Точно съвпадение с верния отговор = 100% от точките</li>
+                                    <li>≥90% от ключовите думи = 100% от точките</li>
+                                    <li>≥75% от ключовите думи = 75% от точките</li>
+                                    <li>≥50% от ключовите думи = 50% от точките</li>
+                                    <li>≥25% от ключовите думи = 25% от точките</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="CorrectAnswer" class="form-label">Верен отговор</label>
+                                <textarea asp-for="CorrectAnswer" class="form-control" rows="3" required></textarea>
+                                <span asp-validation-for="CorrectAnswer" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="Keywords" class="form-label">Ключови думи за оценяване</label>
+                                <input name="Keywords" class="form-control" required 
+                                       placeholder="Въведете ключови думи, разделени със запетая"
+                                       title="Моля, въведете поне една ключова дума" />
+                                <small class="text-muted">Пример: алгоритъм, сложност, време, памет</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Create" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Назад
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Създай въпрос
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div> 

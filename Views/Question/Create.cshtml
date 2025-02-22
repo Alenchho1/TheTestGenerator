@@ -1,0 +1,28 @@
+@model TestGenerator.ViewModels.QuestionViewModel
+
+@{
+    ViewData["Title"] = "Създаване на въпрос";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h5 mb-0"><i class="bi bi-plus-circle"></i> Нов въпрос</h2>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h5>Изберете тип на въпроса:</h5>
+                    <div class="d-flex gap-3">
+                        <a asp-action="CreateMultipleChoice" class="btn btn-outline-primary">
+                            <i class="bi bi-list-check"></i> Въпрос с избираем отговор
+                        </a>
+                        <a asp-action="CreateOpenEnded" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil-square"></i> Въпрос със свободен отговор
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

@@ -1,0 +1,69 @@
+@model TestGenerator.Models.Question
+
+@{
+    ViewData["Title"] = "Потвърждение за изтриване";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-danger text-white">
+                <h2 class="h5 mb-0"><i class="bi bi-exclamation-triangle"></i> Потвърждение за изтриване</h2>
+            </div>
+            <div class="card-body">
+                <h5>Сигурен ли си, че искаш да изтриеш този въпрос?</h5>
+                
+                <div class="mb-3">
+                    <label class="fw-bold">Въпрос:</label>
+                    <p>@Model.Content</p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="fw-bold">Категория:</label>
+                    <p>@Model.Category?.Name</p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="fw-bold">Тип:</label>
+                    <p>@(Model.Type == TestGenerator.Models.QuestionType.MultipleChoice ? "Избираем отговор" : "Свободен отговор")</p>
+                </div>
+
+                @if (Model.Type == TestGenerator.Models.QuestionType.MultipleChoice && Model.PossibleAnswers?.Any() == true)
+                {
+                    <div class="mb-3">
+                        <label class="fw-bold">Възможни отговори:</label>
+                        <ul class="list-group">
+                            @foreach (var answer in Model.PossibleAnswers)
+                            {
+                                <li class="list-group-item @(answer.IsCorrect ? "list-group-item-success" : "")">
+                                    @answer.Content
+                                    @if (answer.IsCorrect)
+                                    {
+                                        <span class="badge bg-success float-end">Верен отговор</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> Внимание: Това действие не може да бъде отменено!
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Отказ
+                    </a>
+                    <form asp-action="DeleteConfirmed" method="post" style="display: inline;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Изтрий въпроса
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

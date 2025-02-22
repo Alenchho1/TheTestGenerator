@@ -1,0 +1,86 @@
+@model TestGenerator.ViewModels.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Административен панел";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-gear"></i> Административен панел</h1>
+    <a asp-action="Users" class="btn btn-primary">
+        <i class="bi bi-people"></i> Управление на потребители
+    </a>
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-4">
+    <div class="col">
+        <div class="card h-100 bg-primary text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-people display-4 mb-3"></i>
+                <h5 class="card-title">Потребители</h5>
+                <p class="display-6 mb-0">@Model.TotalUsers</p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 bg-success text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-file-text display-4 mb-3"></i>
+                <h5 class="card-title">Тестове</h5>
+                <p class="display-6 mb-0">@Model.TotalTests</p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 bg-info text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-question-circle display-4 mb-3"></i>
+                <h5 class="card-title">Въпроси</h5>
+                <p class="display-6 mb-0">@Model.TotalQuestions</p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 bg-warning text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-folder display-4 mb-3"></i>
+                <h5 class="card-title">Категории</h5>
+                <p class="display-6 mb-0">@Model.TotalCategories</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-people"></i> Последно регистрирани потребители
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Име</th>
+                        <th>Имейл</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model.RecentUsers)
+                    {
+                        <tr>
+                            <td>@user.FirstName @user.LastName</td>
+                            <td>@user.Email</td>
+                            <td>
+                                <a asp-action="Users" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i> Управление
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div> 

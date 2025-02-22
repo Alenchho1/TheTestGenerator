@@ -1,0 +1,40 @@
+@model TestGenerator.Models.Category
+
+@{
+    ViewData["Title"] = "Потвърждение за изтриване";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-danger text-white">
+                <h2 class="h5 mb-0"><i class="bi bi-exclamation-triangle"></i> Потвърждение за изтриване</h2>
+            </div>
+            <div class="card-body">
+                <h5>Сигурен ли си, че искаш да изтриеш тази категория?</h5>
+                <p>Категория: <strong>@Model.Name</strong></p>
+                <p>Брой въпроси: <strong>@Model.Questions?.Count</strong></p>
+                
+                @if (Model.Questions?.Any() == true)
+                {
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> Внимание: Изтриването на тази категория ще премахне и всички въпроси в нея!
+                    </div>
+                }
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Отказ
+                    </a>
+                    <form asp-action="DeleteConfirmed" method="post" style="display: inline;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Изтрий категорията
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

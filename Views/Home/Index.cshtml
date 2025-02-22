@@ -1,0 +1,117 @@
+﻿@{
+    ViewData["Title"] = "Начало";
+}
+
+<div class="text-center">
+    <h1 class="display-4 mb-4">Добре дошли в Генератора на тестове</h1>
+    <p class="lead mb-5">Създавайте, управлявайте и решавайте тестове лесно и бързо</p>
+
+    @if (!User.Identity.IsAuthenticated)
+    {
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-6 text-center">
+                <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-primary btn-lg medieval-button me-3">
+                    <i class="bi bi-person-plus"></i> Регистрация
+                </a>
+                <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary btn-lg medieval-button">
+                    <i class="bi bi-shield-check"></i> Вход
+                </a>
+            </div>
+        </div>
+    }
+
+    @if (User.Identity.IsAuthenticated)
+    {
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-4">Създай тест</h2>
+                        <p class="text-muted">Създайте нов тест с въпроси и отговори</p>
+                        <a asp-controller="Test" asp-action="Create" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Създай тест
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-4">Моите тестове</h2>
+                        <p class="text-muted">Прегледайте и управлявайте вашите тестове</p>
+                        <a asp-controller="Test" asp-action="Index" class="btn btn-primary">
+                            <i class="bi bi-list-check"></i> Виж тестовете
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (!User.Identity.IsAuthenticated)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-4">Как работи?</h2>
+                        <div class="row justify-content-center">
+                            <div class="col-md-3">
+                                <div class="text-center mb-4">
+                                    <i class="bi bi-person-plus display-4 text-primary"></i>
+                                    <h4 class="mt-3">Регистрирайте се</h4>
+                                    <p class="text-muted">Създайте безплатен акаунт за достъп до всички функции</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center mb-4">
+                                    <i class="bi bi-shield-lock display-4 text-primary"></i>
+                                    <h4 class="mt-3">Получете роля</h4>
+                                    <p class="text-muted">Администраторът ще ви даде роля на учител или ученик</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center mb-4">
+                                    <i class="bi bi-plus-circle display-4 text-primary"></i>
+                                    <h4 class="mt-3">Създайте тест</h4>
+                                    <p class="text-muted">Добавете въпроси и настройте параметрите на теста</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center mb-4">
+                                    <i class="bi bi-graph-up display-4 text-primary"></i>
+                                    <h4 class="mt-3">Преглеждайте резултати</h4>
+                                    <p class="text-muted">Получавайте подробна обратна връзка за всеки отговор</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        .medieval-button {
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            border: 2px solid #654321;
+            color: #FFD700;
+            font-family: 'Cinzel', serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 1rem 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .medieval-button:hover {
+            background: linear-gradient(45deg, #A0522D, #8B4513);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.4);
+            color: #FFD700;
+            text-decoration: none;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+}

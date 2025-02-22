@@ -1,0 +1,78 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Profile";
+    ViewData["ActivePage"] = ManageNavPages.Index;
+}
+
+<div class="row justify-content-center">
+    <div class="col-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">
+                    <i class="bi bi-person-circle"></i> @ViewData["Title"]
+                </h3>
+            </div>
+            <div class="card-body">
+                <form id="profile-form" method="post" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label for="Username" class="form-label">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email" name="Username" class="form-control" value="@Model.Username" disabled />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="Input_FirstName" class="form-label">First Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" name="Input.FirstName" class="form-control" 
+                                   value="@Model.Input.FirstName" required
+                                   minlength="2" maxlength="50"
+                                   title="First name must be between 2 and 50 characters" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="Input_LastName" class="form-label">Last Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" name="Input.LastName" class="form-control" 
+                                   value="@Model.Input.LastName" required
+                                   minlength="2" maxlength="50"
+                                   title="Last name must be between 2 and 50 characters" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="Input_PhoneNumber" class="form-label">Phone Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                            <input type="tel" name="Input.PhoneNumber" class="form-control" 
+                                   value="@Model.Input.PhoneNumber"
+                                   pattern="^[+]?[\d\s-()]{7,}$"
+                                   title="Please enter a valid phone number" />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Save changes
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        @if (Model.StatusMessage != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                <i class="bi bi-check-circle"></i> @Model.StatusMessage
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
