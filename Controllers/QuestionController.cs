@@ -79,6 +79,15 @@ namespace TestGenerator.Controllers
             {
                 try
                 {
+                    // Get current user
+                    var user = await _userManager.GetUserAsync(User);
+                    if (user == null)
+                    {
+                        _logger.LogError("User not found while creating multiple choice question");
+                        SetAlert("Грешка: Потребителят не е намерен", "danger");
+                        return RedirectToAction("Login", "Account");
+                    }
+
                     var question = new Question
                     {
                         Content = model.Content,
@@ -86,7 +95,8 @@ namespace TestGenerator.Controllers
                         DifficultyLevel = model.DifficultyLevel,
                         CategoryId = model.CategoryId,
                         Points = model.Points,
-                        CreatorId = _userManager.GetUserId(User)
+                        CreatorId = user.Id,
+                        CreatedAt = DateTime.UtcNow
                     };
 
                     // Handle image upload
@@ -119,6 +129,13 @@ namespace TestGenerator.Controllers
                     SetAlert("Възникна грешка при създаването на въпроса", "danger");
                 }
             }
+            else
+            {
+                foreach (var modelError in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    _logger.LogError($"Model validation error: {modelError.ErrorMessage}");
+                }
+            }
 
             ViewBag.Categories = await _context.Categories
                 .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name })
@@ -134,6 +151,17 @@ namespace TestGenerator.Controllers
             {
                 try
                 {
+                    // Get current user
+                    var user = await _userManager.GetUserAsync(User);
+                    if (user == null)
+                    {
+                        _logger.LogError("User not found while creating open ended question");
+                        SetAlert("Грешка: Потребителят не е намерен", "danger");
+                        return RedirectToAction("Login", "Account");
+                    }
+
+                    _logger.LogInformation($"Creating open ended question for user {user.Id}");
+
                     var question = new Question
                     {
                         Content = model.Content,
@@ -141,9 +169,10 @@ namespace TestGenerator.Controllers
                         DifficultyLevel = model.DifficultyLevel,
                         CategoryId = model.CategoryId,
                         Points = model.Points,
-                        CreatorId = _userManager.GetUserId(User),
+                        CreatorId = user.Id,
                         CorrectAnswer = model.CorrectAnswer,
-                        Keywords = model.Keywords
+                        Keywords = model.Keywords,
+                        CreatedAt = DateTime.UtcNow
                     };
 
                     // Handle image upload
@@ -162,6 +191,13 @@ namespace TestGenerator.Controllers
                 {
                     _logger.LogError(ex, "Error creating open ended question");
                     SetAlert("Възникна грешка при създаването на въпроса", "danger");
+                }
+            }
+            else
+            {
+                foreach (var modelError in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    _logger.LogError($"Model validation error: {modelError.ErrorMessage}");
                 }
             }
 
@@ -353,7 +389,9 @@ namespace TestGenerator.Controllers
                     CategoryId = model.CategoryId,
                     Points = model.Points,
                     Keywords = model.Keywords,
-                    CorrectAnswer = model.CorrectAnswer
+                    CorrectAnswer = model.CorrectAnswer,
+                    CreatorId = _userManager.GetUserId(User),
+                    CreatedAt = DateTime.UtcNow
                 };
 
                 if (model.Type == QuestionType.MultipleChoice && model.Answers != null)

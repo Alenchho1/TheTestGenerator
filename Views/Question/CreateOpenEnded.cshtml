@@ -54,7 +54,7 @@
                     <div class="mb-3">
                         <label asp-for="Image" class="form-label">Картинка към въпроса</label>
                         <input asp-for="Image" class="form-control" type="file" accept="image/*" />
-                        <small class="text-muted">Качи картинка, ако въпросът изисква визуален контекст (по желание)</small>
+                        <span asp-validation-for="Image" class="text-danger"></span>
                     </div>
 
                     <div class="card mb-3">
@@ -77,11 +77,11 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="Keywords" class="form-label">Ключови думи за оценяване</label>
-                                <input name="Keywords" class="form-control" required 
-                                       placeholder="Въведете ключови думи, разделени със запетая"
-                                       title="Моля, въведете поне една ключова дума" />
+                                <label asp-for="Keywords" class="form-label">Ключови думи за оценяване</label>
+                                <input asp-for="Keywords" class="form-control" required 
+                                       placeholder="Въведете ключови думи, разделени със запетая" />
                                 <small class="text-muted">Пример: алгоритъм, сложност, време, памет</small>
+                                <span asp-validation-for="Keywords" class="text-danger"></span>
                             </div>
                         </div>
                     </div>

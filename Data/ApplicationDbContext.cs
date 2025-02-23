@@ -39,9 +39,9 @@ namespace TestGenerator.Data
 
             builder.Entity<TestResult>()
                 .HasOne(tr => tr.Test)
-                .WithMany()
+                .WithMany(t => t.TestResults)
                 .HasForeignKey(tr => tr.TestId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<TestResult>()
                 .HasOne(tr => tr.User)

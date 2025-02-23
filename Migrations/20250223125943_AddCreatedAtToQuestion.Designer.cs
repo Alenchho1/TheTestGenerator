@@ -12,8 +12,8 @@ using TestGenerator.Data;
 namespace TestGenerator.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250220123910_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250223125943_AddCreatedAtToQuestion")]
+    partial class AddCreatedAtToQuestion
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -105,12 +105,10 @@ namespace TestGenerator.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderKey")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("nvarchar(max)");
@@ -147,12 +145,10 @@ namespace TestGenerator.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
@@ -278,42 +274,6 @@ namespace TestGenerator.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("TestGenerator.Models.Comment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AuthorId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ParentCommentId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TestId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AuthorId");
-
-                    b.HasIndex("ParentCommentId");
-
-                    b.HasIndex("TestId");
-
-                    b.ToTable("Comments");
-                });
-
             modelBuilder.Entity("TestGenerator.Models.Question", b =>
                 {
                     b.Property<int>("Id")
@@ -332,6 +292,9 @@ namespace TestGenerator.Migrations
                     b.Property<string>("CorrectAnswer")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CreatorId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -344,6 +307,9 @@ namespace TestGenerator.Migrations
 
                     b.Property<string>("Keywords")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Points")
                         .HasColumnType("int");
@@ -380,9 +346,6 @@ namespace TestGenerator.Migrations
 
                     b.Property<int>("DifficultyLevel")
                         .HasColumnType("int");
-
-                    b.Property<bool>("ShuffleQuestions")
-                        .HasColumnType("bit");
 
                     b.Property<int>("TimeLimit")
                         .HasColumnType("int");
@@ -582,32 +545,6 @@ namespace TestGenerator.Migrations
                     b.Navigation("Question");
                 });
 
-            modelBuilder.Entity("TestGenerator.Models.Comment", b =>
-                {
-                    b.HasOne("TestGenerator.Models.ApplicationUser", "Author")
-                        .WithMany("Comments")
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("TestGenerator.Models.Comment", "ParentComment")
-                        .WithMany("Replies")
-                        .HasForeignKey("ParentCommentId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("TestGenerator.Models.Test", "Test")
-                        .WithMany()
-                        .HasForeignKey("TestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Author");
-
-                    b.Navigation("ParentComment");
-
-                    b.Navigation("Test");
-                });
-
             modelBuilder.Entity("TestGenerator.Models.Question", b =>
                 {
                     b.HasOne("TestGenerator.Models.Category", "Category")
@@ -660,7 +597,7 @@ namespace TestGenerator.Migrations
             modelBuilder.Entity("TestGenerator.Models.TestQuestion", b =>
                 {
                     b.HasOne("TestGenerator.Models.Question", "Question")
-                        .WithMany("TestQuestions")
+                        .WithMany()
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -697,8 +634,6 @@ namespace TestGenerator.Migrations
 
             modelBuilder.Entity("TestGenerator.Models.ApplicationUser", b =>
                 {
-                    b.Navigation("Comments");
-
                     b.Navigation("CreatedTests");
                 });
 
@@ -707,16 +642,9 @@ namespace TestGenerator.Migrations
                     b.Navigation("Questions");
                 });
 
-            modelBuilder.Entity("TestGenerator.Models.Comment", b =>
-                {
-                    b.Navigation("Replies");
-                });
-
             modelBuilder.Entity("TestGenerator.Models.Question", b =>
                 {
                     b.Navigation("PossibleAnswers");
-
-                    b.Navigation("TestQuestions");
                 });
 
             modelBuilder.Entity("TestGenerator.Models.Test", b =>

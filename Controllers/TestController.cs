@@ -194,6 +194,12 @@ namespace TestGenerator.Controllers
                 return NotFound();
             }
 
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (test.CreatorId != currentUser.Id && !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
             return View(test);
         }
 
@@ -202,22 +208,55 @@ namespace TestGenerator.Controllers
         [Authorize(Roles = "Admin,Teacher")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var test = await _context.Tests.FindAsync(id);
-            if (test == null)
-            {
-                return NotFound();
-            }
-
             try
             {
+                var test = await _context.Tests
+                    .Include(t => t.TestQuestions)
+                    .Include(t => t.TestResults)
+                        .ThenInclude(tr => tr.AnswerResults)
+                    .FirstOrDefaultAsync(t => t.Id == id);
+
+                if (test == null)
+                {
+                    return NotFound();
+                }
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (test.CreatorId != currentUser.Id && !User.IsInRole("Admin"))
+                {
+                    return Forbid();
+                }
+
+                // Delete all related test results first
+                if (test.TestResults != null && test.TestResults.Any())
+                {
+                    foreach (var result in test.TestResults)
+                    {
+                        // Delete answer results first
+                        if (result.AnswerResults != null)
+                        {
+                            _context.TestAnswerResults.RemoveRange(result.AnswerResults);
+                        }
+                    }
+                    _context.TestResults.RemoveRange(test.TestResults);
+                }
+
+                // Delete test questions
+                if (test.TestQuestions != null)
+                {
+                    _context.TestQuestions.RemoveRange(test.TestQuestions);
+                }
+
+                // Finally delete the test
                 _context.Tests.Remove(test);
                 await _context.SaveChangesAsync();
+
                 SetAlert("Тестът беше изтрит успешно", "success");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting test");
-                SetAlert("Възникна грешка при изтриването на теста", "danger");
+                SetAlert("Грешка при изтриване на теста", "danger");
             }
 
             return RedirectToAction(nameof(Index));

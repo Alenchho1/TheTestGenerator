@@ -48,7 +48,7 @@ namespace TestGenerator.Services
                     await image.CopyToAsync(fileStream);
                 }
 
-                return $"~/{ImageFolder}/" + uniqueFileName;
+                return $"/{ImageFolder}/" + uniqueFileName;
             }
             catch (Exception ex)
             {
@@ -59,11 +59,15 @@ namespace TestGenerator.Services
 
         public void DeleteImage(string imagePath)
         {
-            if (string.IsNullOrEmpty(imagePath)) return;
+            if (string.IsNullOrEmpty(imagePath))
+            {
+                return;
+            }
 
             try
             {
-                string fullPath = Path.Combine(_webHostEnvironment.WebRootPath, imagePath.TrimStart('~', '/'));
+                imagePath = imagePath.TrimStart('~', '/');
+                string fullPath = Path.Combine(_webHostEnvironment.WebRootPath, imagePath);
                 if (File.Exists(fullPath))
                 {
                     File.Delete(fullPath);

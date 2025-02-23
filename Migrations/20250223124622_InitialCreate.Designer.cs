@@ -12,8 +12,8 @@ using TestGenerator.Data;
 namespace TestGenerator.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250220154644_UpdateCategories")]
-    partial class UpdateCategories
+    [Migration("20250223124622_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -105,12 +105,10 @@ namespace TestGenerator.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderKey")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("nvarchar(max)");
@@ -147,12 +145,10 @@ namespace TestGenerator.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
@@ -172,10 +168,14 @@ namespace TestGenerator.Migrations
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("IsCorrect")
                         .HasColumnType("bit");
+
+                    b.Property<int>("OrderNumber")
+                        .HasColumnType("int");
 
                     b.Property<int>("QuestionId")
                         .HasColumnType("int");
@@ -266,8 +266,14 @@ namespace TestGenerator.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("LastModifiedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -291,10 +297,14 @@ namespace TestGenerator.Migrations
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("CorrectAnswer")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatorId")
                         .IsRequired()
@@ -308,6 +318,9 @@ namespace TestGenerator.Migrations
 
                     b.Property<string>("Keywords")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("LastModifiedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Points")
                         .HasColumnType("int");
@@ -340,20 +353,19 @@ namespace TestGenerator.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<int>("DifficultyLevel")
                         .HasColumnType("int");
-
-                    b.Property<bool>("ShuffleQuestions")
-                        .HasColumnType("bit");
 
                     b.Property<int>("TimeLimit")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("TotalPoints")
                         .HasColumnType("int");
@@ -598,7 +610,7 @@ namespace TestGenerator.Migrations
             modelBuilder.Entity("TestGenerator.Models.TestQuestion", b =>
                 {
                     b.HasOne("TestGenerator.Models.Question", "Question")
-                        .WithMany("TestQuestions")
+                        .WithMany()
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -646,8 +658,6 @@ namespace TestGenerator.Migrations
             modelBuilder.Entity("TestGenerator.Models.Question", b =>
                 {
                     b.Navigation("PossibleAnswers");
-
-                    b.Navigation("TestQuestions");
                 });
 
             modelBuilder.Entity("TestGenerator.Models.Test", b =>

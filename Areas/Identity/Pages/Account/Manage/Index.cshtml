@@ -1,71 +1,73 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Profile";
+    ViewData["Title"] = "Профил";
     ViewData["ActivePage"] = ManageNavPages.Index;
 }
 
 <div class="row justify-content-center">
-    <div class="col-8">
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h3 class="card-title mb-0">
-                    <i class="bi bi-person-circle"></i> @ViewData["Title"]
-                </h3>
+    <div class="col-md-8">
+        <div class="card medieval-card">
+            <div class="card-header medieval-header">
+                <h2 class="card-title text-center mb-0">
+                    <i class="bi bi-person-circle"></i> ПРОФИЛ
+                </h2>
             </div>
-            <div class="card-body">
+            <div class="card-body medieval-body">
                 <form id="profile-form" method="post" class="needs-validation" novalidate>
                     <div class="mb-3">
-                        <label for="Username" class="form-label">Email</label>
+                        <label class="form-label medieval-label">ИМЕЙЛ АДРЕС</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                            <input type="email" name="Username" class="form-control" value="@Model.Username" disabled />
+                            <span class="input-group-text medieval-input-icon"><i class="bi bi-envelope"></i></span>
+                            <input type="email" name="Username" class="form-control medieval-input" value="@Model.Username" disabled />
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="Input_FirstName" class="form-label">First Name</label>
+                        <label class="form-label medieval-label">ИМЕ</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            <input type="text" name="Input.FirstName" class="form-control" 
+                            <span class="input-group-text medieval-input-icon"><i class="bi bi-person"></i></span>
+                            <input type="text" name="Input.FirstName" class="form-control medieval-input" 
                                    value="@Model.Input.FirstName" required
                                    minlength="2" maxlength="50"
-                                   title="First name must be between 2 and 50 characters" />
+                                   title="Името трябва да е между 2 и 50 символа" />
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="Input_LastName" class="form-label">Last Name</label>
+                        <label class="form-label medieval-label">ФАМИЛИЯ</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            <input type="text" name="Input.LastName" class="form-control" 
+                            <span class="input-group-text medieval-input-icon"><i class="bi bi-person"></i></span>
+                            <input type="text" name="Input.LastName" class="form-control medieval-input" 
                                    value="@Model.Input.LastName" required
                                    minlength="2" maxlength="50"
-                                   title="Last name must be between 2 and 50 characters" />
+                                   title="Фамилията трябва да е между 2 и 50 символа" />
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="Input_PhoneNumber" class="form-label">Phone Number</label>
+                        <label class="form-label medieval-label">ТЕЛЕФОНЕН НОМЕР</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                            <input type="tel" name="Input.PhoneNumber" class="form-control" 
+                            <span class="input-group-text medieval-input-icon"><i class="bi bi-telephone"></i></span>
+                            <input type="tel" name="Input.PhoneNumber" class="form-control medieval-input" 
                                    value="@Model.Input.PhoneNumber"
                                    pattern="^[+]?[\d\s-()]{7,}$"
-                                   title="Please enter a valid phone number" />
+                                   title="Моля, въведете валиден телефонен номер" />
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save"></i> Save changes
-                    </button>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn medieval-button">
+                            <i class="bi bi-save"></i> ЗАПАЗИ ПРОМЕНИТЕ
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
 
         @if (Model.StatusMessage != null)
         {
-            <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            <div class="alert alert-success medieval-alert alert-dismissible fade show mt-3" role="alert">
                 <i class="bi bi-check-circle"></i> @Model.StatusMessage
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
@@ -75,4 +77,90 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+}
+
+@section Styles {
+    <style>
+        .medieval-card {
+            background: url('data:image/png;base64,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');
+            border: 3px solid #8B4513;
+            box-shadow: 0 0 15px rgba(139, 69, 19, 0.3);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .medieval-header {
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            border-bottom: 2px solid #654321;
+            padding: 1rem;
+        }
+
+        .medieval-header h2 {
+            color: #FFD700;
+            font-family: 'Cinzel', serif;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            font-size: 1.5rem;
+        }
+
+        .medieval-body {
+            padding: 1.5rem;
+            background-color: rgba(255, 248, 220, 0.95);
+        }
+
+        .medieval-label {
+            color: #654321;
+            font-weight: 600;
+            font-family: 'Cinzel', serif;
+            text-transform: uppercase;
+        }
+
+        .medieval-input {
+            border: 2px solid #8B4513;
+            background-color: #FFF8DC;
+            padding: 0.75rem;
+            color: #654321;
+        }
+
+        .medieval-input:focus {
+            border-color: #DAA520;
+            box-shadow: 0 0 0 0.2rem rgba(218, 165, 32, 0.25);
+        }
+
+        .medieval-input:disabled {
+            background-color: #E8E8E8;
+            cursor: not-allowed;
+        }
+
+        .medieval-input-icon {
+            background-color: #8B4513;
+            border: 2px solid #8B4513;
+            color: #FFD700;
+        }
+
+        .medieval-button {
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            border: 2px solid #654321;
+            color: #FFD700;
+            font-family: 'Cinzel', serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 1rem 2rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .medieval-button:hover {
+            background: linear-gradient(45deg, #A0522D, #8B4513);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.4);
+        }
+
+        .medieval-alert {
+            background-color: #FFF8DC;
+            border: 2px solid #8B4513;
+            color: #654321;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
 }

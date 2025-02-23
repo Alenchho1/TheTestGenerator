@@ -81,7 +81,7 @@
                     @if (!string.IsNullOrEmpty(answer.Question.ImagePath))
                     {
                         <div class="mb-3">
-                            <img src="@answer.Question.ImagePath" alt="Question Image" class="img-fluid rounded" style="max-height: 200px" />
+                            <img src="@Url.Content(answer.Question.ImagePath)" alt="Question Image" class="img-fluid rounded" style="max-height: 200px" />
                         </div>
                     }
 

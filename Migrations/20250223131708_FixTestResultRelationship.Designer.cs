@@ -12,8 +12,8 @@ using TestGenerator.Data;
 namespace TestGenerator.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250221103004_RemoveShuffleQuestions")]
-    partial class RemoveShuffleQuestions
+    [Migration("20250223131708_FixTestResultRelationship")]
+    partial class FixTestResultRelationship
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -292,6 +292,9 @@ namespace TestGenerator.Migrations
                     b.Property<string>("CorrectAnswer")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CreatorId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -304,6 +307,9 @@ namespace TestGenerator.Migrations
 
                     b.Property<string>("Keywords")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Points")
                         .HasColumnType("int");
@@ -610,9 +616,9 @@ namespace TestGenerator.Migrations
             modelBuilder.Entity("TestGenerator.Models.TestResult", b =>
                 {
                     b.HasOne("TestGenerator.Models.Test", "Test")
-                        .WithMany()
+                        .WithMany("TestResults")
                         .HasForeignKey("TestId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("TestGenerator.Models.ApplicationUser", "User")
@@ -644,6 +650,8 @@ namespace TestGenerator.Migrations
             modelBuilder.Entity("TestGenerator.Models.Test", b =>
                 {
                     b.Navigation("TestQuestions");
+
+                    b.Navigation("TestResults");
                 });
 
             modelBuilder.Entity("TestGenerator.Models.TestResult", b =>

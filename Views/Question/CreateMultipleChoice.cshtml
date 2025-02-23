@@ -12,37 +12,34 @@
             </div>
             <div class="card-body">
                 <form asp-action="CreateMultipleChoice" method="post" enctype="multipart/form-data" novalidate>
-                    <input type="hidden" name="Type" value="@TestGenerator.Models.QuestionType.MultipleChoice" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                    
+                    <input type="hidden" asp-for="Type" value="@TestGenerator.Models.QuestionType.MultipleChoice" />
 
                     <div class="mb-3">
-                        <label for="Content" class="form-label">Текст на въпроса</label>
-                        <textarea name="Content" class="form-control" rows="3" required
-                                 title="Моля, въведете текст на въпроса"></textarea>
+                        <label asp-for="Content" class="form-label">Текст на въпроса</label>
+                        <textarea asp-for="Content" class="form-control" rows="3" required></textarea>
+                        <span asp-validation-for="Content" class="text-danger"></span>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-4">
-                            <label for="CategoryId" class="form-label">Категория</label>
-                            <select name="CategoryId" class="form-select" required
-                                    title="Моля, изберете категория">
+                            <label asp-for="CategoryId" class="form-label">Категория</label>
+                            <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories" required>
                                 <option value="">Избери категория</option>
-                                @foreach (var category in ViewBag.Categories)
-                                {
-                                    <option value="@category.Value">@category.Text</option>
-                                }
                             </select>
+                            <span asp-validation-for="CategoryId" class="text-danger"></span>
                         </div>
 
                         <div class="col-md-4">
-                            <label for="Points" class="form-label">Точки</label>
-                            <input name="Points" class="form-control" type="number" min="1" max="100" required
-                                   title="Точките трябва да бъдат между 1 и 100" />
+                            <label asp-for="Points" class="form-label">Точки</label>
+                            <input asp-for="Points" class="form-control" type="number" min="1" max="100" required />
+                            <span asp-validation-for="Points" class="text-danger"></span>
                         </div>
 
                         <div class="col-md-4">
-                            <label for="DifficultyLevel" class="form-label">Ниво на трудност</label>
-                            <select name="DifficultyLevel" class="form-select" required
-                                    title="Моля, изберете ниво на трудност">
+                            <label asp-for="DifficultyLevel" class="form-label">Ниво на трудност</label>
+                            <select asp-for="DifficultyLevel" class="form-select" required>
                                 <option value="">Избери трудност</option>
                                 <option value="1">Лесно</option>
                                 <option value="2">По-лесно</option>
@@ -50,12 +47,14 @@
                                 <option value="4">По-трудно</option>
                                 <option value="5">Трудно</option>
                             </select>
+                            <span asp-validation-for="DifficultyLevel" class="text-danger"></span>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="Image" class="form-label">Картинка към въпроса</label>
-                        <input name="Image" class="form-control" type="file" accept="image/*" />
+                        <label asp-for="Image" class="form-label">Картинка към въпроса</label>
+                        <input asp-for="Image" class="form-control" type="file" accept="image/*" />
+                        <span asp-validation-for="Image" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
@@ -67,17 +66,18 @@
                                     <div class="card-body">
                                         <div class="row align-items-center">
                                             <div class="col">
-                                                <input type="text" name="Answers[@i].Content" 
+                                                <input asp-for="Answers[i].Content" 
                                                        class="form-control" required
-                                                       title="Моля, въведете текст за отговор @(i + 1)"
                                                        placeholder="Отговор @(i + 1)" />
+                                                <span asp-validation-for="Answers[i].Content" class="text-danger"></span>
                                             </div>
                                             <div class="col-auto">
                                                 <div class="form-check">
-                                                    <input class="form-check-input" type="radio" 
-                                                           name="correctAnswerIndex" value="@i"
-                                                           required
-                                                           title="Моля, изберете верния отговор" />
+                                                    <input type="radio" 
+                                                           name="correctAnswerIndex" 
+                                                           value="@i"
+                                                           class="form-check-input" 
+                                                           required />
                                                     <label class="form-check-label">Верен отговор</label>
                                                 </div>
                                             </div>
@@ -89,7 +89,7 @@
                     </div>
 
                     <div class="d-flex justify-content-between">
-                        <a href="@Url.Action("Create")" class="btn btn-outline-secondary">
+                        <a asp-action="Create" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-left"></i> Назад
                         </a>
                         <button type="submit" class="btn btn-primary">
