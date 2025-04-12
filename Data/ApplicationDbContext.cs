@@ -67,7 +67,7 @@ namespace TestGenerator.Data
                 .HasForeignKey(q => q.CreatorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Configure decimal precision for PercentageScore and Grade
+            // Настройка на точността за проценти и оценки
             builder.Entity<TestResult>()
                 .Property(tr => tr.PercentageScore)
                 .HasPrecision(5, 2);
@@ -77,8 +77,27 @@ namespace TestGenerator.Data
                 .HasPrecision(3, 2);
 
             builder.Entity<TestAnswerResult>()
-                .Property(tar => tar.KeywordMatchPercentage)
+                .Property(tr => tr.SubmittedAnswer)
+                .HasMaxLength(1000);
+
+            builder.Entity<TestResult>()
+                .Property(tr => tr.Score)
                 .HasPrecision(5, 2);
+
+            // Конфигурация за TestAnswerResult
+            builder.Entity<TestAnswerResult>()
+                .Property(t => t.KeywordMatchPercentage)
+                .HasPrecision(5, 2);
+
+            // Добавяне на примерни данни за география
+            builder.Entity<Category>().HasData(
+                new Category
+                {
+                    Id = 1,
+                    Name = "География",
+                    Description = "Въпроси за географията на България и света"
+                }
+            );
         }
     }
 }

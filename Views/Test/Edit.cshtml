@@ -1,0 +1,87 @@
+@model TestGenerator.ViewModels.TestEditViewModel
+
+@{
+    ViewData["Title"] = "Редактиране на тест";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="card-title mb-0">
+                        <i class="bi bi-pencil-square"></i> Редактиране на тест
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger">
+                                <ul>
+                                    @foreach (var modelError in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                    {
+                                        <li>@modelError.ErrorMessage</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label"></label>
+                            <input asp-for="Title" class="form-control" />
+                            @if (ViewData.ModelState["Title"]?.Errors.Count > 0)
+                            {
+                                <div class="text-danger">@string.Join(", ", ViewData.ModelState["Title"].Errors.Select(e => e.ErrorMessage))</div>
+                            }
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label"></label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            @if (ViewData.ModelState["Description"]?.Errors.Count > 0)
+                            {
+                                <div class="text-danger">@string.Join(", ", ViewData.ModelState["Description"].Errors.Select(e => e.ErrorMessage))</div>
+                            }
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="TimeLimit" class="form-label"></label>
+                            <input asp-for="TimeLimit" class="form-control" type="number" min="1" max="180" />
+                            @if (ViewData.ModelState["TimeLimit"]?.Errors.Count > 0)
+                            {
+                                <div class="text-danger">@string.Join(", ", ViewData.ModelState["TimeLimit"].Errors.Select(e => e.ErrorMessage))</div>
+                            }
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="DifficultyLevel" class="form-label"></label>
+                            <select asp-for="DifficultyLevel" class="form-select">
+                                <option value="1">1 - Много лесно</option>
+                                <option value="2">2 - Лесно</option>
+                                <option value="3">3 - Средно</option>
+                                <option value="4">4 - Трудно</option>
+                                <option value="5">5 - Много трудно</option>
+                            </select>
+                            @if (ViewData.ModelState["DifficultyLevel"]?.Errors.Count > 0)
+                            {
+                                <div class="text-danger">@string.Join(", ", ViewData.ModelState["DifficultyLevel"].Errors.Select(e => e.ErrorMessage))</div>
+                            }
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Назад
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Запази промените
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

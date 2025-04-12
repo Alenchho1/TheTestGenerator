@@ -33,7 +33,18 @@ namespace TestGenerator.Controllers
         {
             var test = await _context.Tests.FindAsync(testId);
             if (test == null) return false;
-            return test.CreatorId == userId;
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
+
+            // Учител има достъп до всички тестове
+            if (User.IsInRole("Teacher"))
+            {
+                return true;
+            }
+
+            // Ученик има достъп само до тестове, които не са създадени от него
+            return test.CreatorId != userId;
         }
 
         public async Task<IActionResult> Index()
@@ -41,22 +52,35 @@ namespace TestGenerator.Controllers
             try
             {
                 var currentUser = await _userManager.GetUserAsync(User);
-                _logger.LogInformation($"Fetching tests for user: {currentUser.Id}");
+                _logger.LogInformation($"Търсене на тестове за потребител: {currentUser.Id}");
 
-                var tests = await _context.Tests
+                var isTeacher = await _userManager.IsInRoleAsync(currentUser, "Teacher");
+
+                IQueryable<Test> testsQuery = _context.Tests
                     .Include(t => t.TestQuestions)
-                    .Include(t => t.Creator)
-                    .Where(t => t.CreatorId == currentUser.Id)
-                    .OrderByDescending(t => t.CreatedAt)
-                    .ToListAsync();
+                    .Include(t => t.Creator);
 
-                _logger.LogInformation($"Found {tests.Count} tests for user");
+                // Учител вижда всички тестове
+                if (isTeacher)
+                {
+                    testsQuery = testsQuery.OrderByDescending(t => t.CreatedAt);
+                }
+                // Ученик вижда тестове, които не са създадени от него
+                else
+                {
+                    testsQuery = testsQuery
+                        .Where(t => t.CreatorId != currentUser.Id)
+                        .OrderByDescending(t => t.CreatedAt);
+                }
+
+                var tests = await testsQuery.ToListAsync();
+                _logger.LogInformation($"Намерени {tests.Count} теста за потребителя");
 
                 return View(tests);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching tests");
+                _logger.LogError(ex, "Грешка при търсене на тестове");
                 SetAlert("Възникна грешка при зареждането на тестовете.", "danger");
                 return View(new List<Test>());
             }
@@ -92,7 +116,7 @@ namespace TestGenerator.Controllers
             return View(test);
         }
 
-        [Authorize(Roles = "Admin,Teacher")]
+        [Authorize(Roles = "Teacher")]
         public async Task<IActionResult> Create()
         {
             ViewBag.Categories = await _context.Categories
@@ -116,7 +140,7 @@ namespace TestGenerator.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Teacher")]
+        [Authorize(Roles = "Teacher")]
         public async Task<IActionResult> Create(TestGenerationViewModel model)
         {
             if (!ModelState.IsValid)
@@ -131,7 +155,6 @@ namespace TestGenerator.Controllers
 
                 if (!questions.Any())
                 {
-                    _logger.LogWarning($"No questions found for category {model.CategoryId}");
                     ModelState.AddModelError("", "Няма намерени въпроси в избраната категория.");
                     await PrepareCreateViewData();
                     return View(model);
@@ -139,15 +162,12 @@ namespace TestGenerator.Controllers
 
                 if (questions.Count < model.NumberOfQuestions)
                 {
-                    _logger.LogWarning($"Not enough questions found. Requested: {model.NumberOfQuestions}, Found: {questions.Count}");
                     ModelState.AddModelError("", $"Недостатъчен брой въпроси в избраната категория. Налични са само {questions.Count} въпроса.");
                     await PrepareCreateViewData();
                     return View(model);
                 }
 
-                // Calculate average difficulty
                 var averageDifficulty = (int)Math.Round(questions.Average(q => q.DifficultyLevel));
-                _logger.LogInformation($"Calculated average difficulty: {averageDifficulty}");
 
                 var test = new Test
                 {
@@ -168,13 +188,12 @@ namespace TestGenerator.Controllers
                 _context.Tests.Add(test);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation($"Test created successfully with ID: {test.Id}");
                 SetAlert("Тестът беше създаден успешно", "success");
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating test");
+                _logger.LogError(ex, "Грешка при създаването на теста");
                 SetAlert("Възникна грешка при създаването на теста", "danger");
                 await PrepareCreateViewData();
                 return View(model);
@@ -182,7 +201,7 @@ namespace TestGenerator.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin,Teacher")]
+        [Authorize(Roles = "Teacher")]
         public async Task<IActionResult> Delete(int id)
         {
             var test = await _context.Tests
@@ -194,18 +213,12 @@ namespace TestGenerator.Controllers
                 return NotFound();
             }
 
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (test.CreatorId != currentUser.Id && !User.IsInRole("Admin"))
-            {
-                return Forbid();
-            }
-
             return View(test);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Teacher")]
+        [Authorize(Roles = "Teacher")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             try
@@ -221,18 +234,11 @@ namespace TestGenerator.Controllers
                     return NotFound();
                 }
 
-                var currentUser = await _userManager.GetUserAsync(User);
-                if (test.CreatorId != currentUser.Id && !User.IsInRole("Admin"))
-                {
-                    return Forbid();
-                }
-
-                // Delete all related test results first
+                // Изтриване на свързаните данни
                 if (test.TestResults != null && test.TestResults.Any())
                 {
                     foreach (var result in test.TestResults)
                     {
-                        // Delete answer results first
                         if (result.AnswerResults != null)
                         {
                             _context.TestAnswerResults.RemoveRange(result.AnswerResults);
@@ -241,13 +247,12 @@ namespace TestGenerator.Controllers
                     _context.TestResults.RemoveRange(test.TestResults);
                 }
 
-                // Delete test questions
+                // Изтриване на тестовите въпроси
                 if (test.TestQuestions != null)
                 {
                     _context.TestQuestions.RemoveRange(test.TestQuestions);
                 }
 
-                // Finally delete the test
                 _context.Tests.Remove(test);
                 await _context.SaveChangesAsync();
 
@@ -255,7 +260,7 @@ namespace TestGenerator.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting test");
+                _logger.LogError(ex, "Грешка при изтриване на теста");
                 SetAlert("Грешка при изтриване на теста", "danger");
             }
 
@@ -270,7 +275,7 @@ namespace TestGenerator.Controllers
                 .Take(model.NumberOfQuestions)
                 .ToListAsync();
 
-            _logger.LogInformation($"Found {questions.Count} questions for category {model.CategoryId}");
+            _logger.LogInformation($"Намерени {questions.Count} въпроса за категория {model.CategoryId}");
             return questions;
         }
 
@@ -279,6 +284,13 @@ namespace TestGenerator.Controllers
             if (id == null)
             {
                 return NotFound();
+            }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (!await UserCanAccessTest(id.Value, currentUser.Id))
+            {
+                SetAlert("Нямате достъп до този тест.", "danger");
+                return RedirectToAction(nameof(Index));
             }
 
             var test = await _context.Tests
@@ -388,11 +400,30 @@ namespace TestGenerator.Controllers
                 _context.TestResults.Add(testResult);
                 await _context.SaveChangesAsync();
 
+                // Презареждане на данните за теста
+                var reloadedTest = await _context.Tests
+                    .Include(t => t.TestQuestions)
+                    .ThenInclude(tq => tq.Question)
+                    .FirstOrDefaultAsync(t => t.Id == testResult.TestId);
+
+                // Обновяване на модела с презаредените данни
+                foreach (var answer in testResult.AnswerResults)
+                {
+                    var question = reloadedTest.TestQuestions
+                        .Select(tq => tq.Question)
+                        .FirstOrDefault(q => q.Id == answer.QuestionId);
+                    if (question != null)
+                    {
+                        answer.Question = question;
+                    }
+                }
+
                 SetAlert("Тестът беше успешно предаден.", "success");
                 return RedirectToAction(nameof(Result), new { id = testResult.Id });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Грешка при предаване на теста");
                 SetAlert($"Възникна грешка при предаването на теста: {ex.Message}", "danger");
                 return View("Take", model);
             }
@@ -407,6 +438,7 @@ namespace TestGenerator.Controllers
 
             var testResult = await _context.TestResults
                 .Include(tr => tr.Test)
+                    .ThenInclude(t => t.TestQuestions)
                 .Include(tr => tr.AnswerResults)
                     .ThenInclude(ar => ar.Question)
                         .ThenInclude(q => q.Category)
@@ -421,12 +453,92 @@ namespace TestGenerator.Controllers
             }
 
             var currentUser = await _userManager.GetUserAsync(User);
-            if (testResult.UserId != currentUser.Id)
+            // Позволяваме достъп на учители или на потребителя, който е направил теста
+            if (testResult.UserId != currentUser.Id && !User.IsInRole("Teacher"))
             {
                 return Forbid();
             }
 
+            // Подреждаме отговорите според OrderNumber на въпросите в теста
+            var orderedAnswers = testResult.AnswerResults
+                .Join(testResult.Test.TestQuestions,
+                    ar => ar.QuestionId,
+                    tq => tq.QuestionId,
+                    (ar, tq) => new { Answer = ar, OrderNumber = tq.OrderNumber })
+                .OrderBy(x => x.OrderNumber)
+                .Select(x => x.Answer)
+                .ToList();
+
+            testResult.AnswerResults = orderedAnswers;
+
             return View(testResult);
+        }
+
+        [Authorize(Roles = "Teacher")]
+        public async Task<IActionResult> ViewResults(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var test = await _context.Tests
+                .Include(t => t.TestResults)
+                    .ThenInclude(tr => tr.User)
+                .Include(t => t.TestResults)
+                    .ThenInclude(tr => tr.AnswerResults)
+                        .ThenInclude(ar => ar.Question)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (test == null)
+            {
+                return NotFound();
+            }
+
+            return View(test);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Teacher")]
+        public async Task<IActionResult> ClearAllData()
+        {
+            try
+            {
+                // Изтриване на всички тестови резултати
+                var testResults = await _context.TestResults.ToListAsync();
+                _context.TestResults.RemoveRange(testResults);
+
+                // Изтриване на всички тестови въпроси
+                var testQuestions = await _context.TestQuestions.ToListAsync();
+                _context.TestQuestions.RemoveRange(testQuestions);
+
+                // Изтриване на всички тестове
+                var tests = await _context.Tests.ToListAsync();
+                _context.Tests.RemoveRange(tests);
+
+                // Изтриване на всички отговори
+                var answers = await _context.Answers.ToListAsync();
+                _context.Answers.RemoveRange(answers);
+
+                // Изтриване на всички въпроси
+                var questions = await _context.Questions.ToListAsync();
+                _context.Questions.RemoveRange(questions);
+
+                // Изтриване на всички категории
+                var categories = await _context.Categories.ToListAsync();
+                _context.Categories.RemoveRange(categories);
+
+                await _context.SaveChangesAsync();
+
+                SetAlert("Всички данни бяха успешно изтрити", "success");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Грешка при изтриване на данните");
+                SetAlert("Възникна грешка при изтриване на данните", "danger");
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         private async Task PrepareCreateViewData()
@@ -442,6 +554,105 @@ namespace TestGenerator.Controllers
                 .ToListAsync();
 
             ViewBag.Categories = categories;
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Teacher")]
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var test = await _context.Tests
+                .Include(t => t.TestQuestions)
+                    .ThenInclude(tq => tq.Question)
+                        .ThenInclude(q => q.Category)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (test == null)
+            {
+                return NotFound();
+            }
+
+            // Проверяваме дали текущият потребител е създател на теста
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (test.CreatorId != currentUser.Id)
+            {
+                return Forbid();
+            }
+
+            var model = new TestEditViewModel
+            {
+                Id = test.Id,
+                Title = test.Title,
+                Description = test.Description,
+                TimeLimit = test.TimeLimit,
+                DifficultyLevel = test.DifficultyLevel
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Teacher")]
+        public async Task<IActionResult> Edit(int id, TestEditViewModel model)
+        {
+            if (id != model.Id)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var test = await _context.Tests.FindAsync(id);
+                    if (test == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Проверяваме дали текущият потребител е създател на теста
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    if (test.CreatorId != currentUser.Id)
+                    {
+                        return Forbid();
+                    }
+
+                    // Обновяваме само позволените полета
+                    test.Title = model.Title;
+                    test.Description = model.Description;
+                    test.TimeLimit = model.TimeLimit;
+                    test.DifficultyLevel = model.DifficultyLevel;
+
+                    _context.Update(test);
+                    await _context.SaveChangesAsync();
+
+                    SetAlert("Тестът беше успешно редактиран", "success");
+                    return RedirectToAction(nameof(Details), new { id = test.Id });
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!TestExists(id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
+
+            return View(model);
+        }
+
+        private bool TestExists(int id)
+        {
+            return _context.Tests.Any(t => t.Id == id);
         }
     }
 } 

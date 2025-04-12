@@ -1,0 +1,93 @@
+@model TestGenerator.Models.Test
+
+@{
+    ViewData["Title"] = $"Резултати от тест: {Model.Title}";
+}
+
+<div class="container">
+    <h2>Резултати от тест: @Model.Title</h2>
+
+    @if (!Model.TestResults.Any())
+    {
+        <div class="alert alert-info">
+            Няма налични резултати.
+        </div>
+    }
+    else
+    {
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h4>Общ брой опити: @Model.TestResults.Count()</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h4>Среден резултат: @Model.TestResults.Average(r => r.Score).ToString("F2")%</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h4>Средно време: @TimeSpan.FromSeconds(Model.TestResults.Average(r => (r.EndTime - r.StartTime).TotalSeconds)).ToString(@"hh\:mm\:ss")</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Детайлни резултати</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Ученик</th>
+                                <th>Дата</th>
+                                <th>Време</th>
+                                <th>Верни</th>
+                                <th>Оценка</th>
+                                <th>Резултат</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var result in Model.TestResults.OrderByDescending(r => r.EndTime))
+                            {
+                                <tr>
+                                    <td>@result.User.FirstName @result.User.LastName</td>
+                                    <td>@result.EndTime.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td>@((result.EndTime - result.StartTime).ToString(@"hh\:mm\:ss"))</td>
+                                    <td>@result.CorrectAnswers / @result.TotalQuestions</td>
+                                    <td>@result.Grade.ToString("F2")</td>
+                                    <td>
+                                        <span class="@(result.Score >= 50 ? "text-success" : "text-danger")">
+                                            @result.Score.ToString("F2")%
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a asp-action="Result" asp-route-id="@result.Id" class="btn btn-sm btn-outline-primary">
+                                            Детайли
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="text-center mt-4">
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-primary">
+            Обратно към теста
+        </a>
+    </div>
+</div> 

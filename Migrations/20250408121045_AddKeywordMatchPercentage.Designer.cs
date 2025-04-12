@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TestGenerator.Data;
 
@@ -11,9 +12,11 @@ using TestGenerator.Data;
 namespace TestGenerator.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250408121045_AddKeywordMatchPercentage")]
+    partial class AddKeywordMatchPercentage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -276,7 +279,7 @@ namespace TestGenerator.Migrations
                         new
                         {
                             Id = 1,
-                            Description = "Въпроси за географията на България и света",
+                            Description = "Въпроси свързани с география, държави, столици, планини, реки и др.",
                             Name = "География"
                         });
                 });
@@ -294,8 +297,7 @@ namespace TestGenerator.Migrations
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CorrectAnswer")
                         .HasColumnType("nvarchar(max)");
@@ -390,8 +392,7 @@ namespace TestGenerator.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal>("KeywordMatchPercentage")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Points")
                         .HasColumnType("int");

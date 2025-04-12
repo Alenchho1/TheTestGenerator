@@ -19,9 +19,6 @@
         <a asp-action="Index" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Назад
         </a>
-        <a asp-action="Take" asp-route-id="@Model.Id" class="btn btn-primary">
-            <i class="bi bi-play-circle"></i> Започни теста
-        </a>
         <button type="button" class="btn btn-outline-info" onclick="toggleQuestions()">
             <i class="bi bi-eye"></i> Преглед на въпросите
         </button>
@@ -153,12 +150,33 @@
     <a asp-action="Index" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left"></i> Назад
     </a>
-    @if (User.IsInRole("Admin") || Model.CreatorId == UserManager.GetUserId(User))
-    {
-        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
-            <i class="bi bi-trash"></i> Изтрий теста
-        </a>
-    }
+    <div class="card-footer bg-transparent">
+        <div class="d-flex justify-content-between">
+            @if (User.IsInRole("Teacher"))
+            {
+                <div>
+                    <a asp-action="ViewResults" asp-route-id="@Model.Id" class="btn btn-primary me-2">
+                        <i class="bi bi-bar-chart"></i> Виж резултатите
+                    </a>
+                    @if (Model.CreatorId == UserManager.GetUserId(User))
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning me-2">
+                            <i class="bi bi-pencil"></i> Редактирай
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Изтрий
+                        </a>
+                    }
+                </div>
+            }
+            else
+            {
+                <a asp-action="Take" asp-route-id="@Model.Id" class="btn btn-primary">
+                    <i class="bi bi-play-circle"></i> Започни теста
+                </a>
+            }
+        </div>
+    </div>
 </div>
 
 @section Styles {

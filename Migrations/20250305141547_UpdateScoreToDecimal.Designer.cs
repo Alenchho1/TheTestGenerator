@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TestGenerator.Data;
 
@@ -11,9 +12,11 @@ using TestGenerator.Data;
 namespace TestGenerator.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250305141547_UpdateScoreToDecimal")]
+    partial class UpdateScoreToDecimal
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -271,14 +274,6 @@ namespace TestGenerator.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Description = "Въпроси за географията на България и света",
-                            Name = "География"
-                        });
                 });
 
             modelBuilder.Entity("TestGenerator.Models.Question", b =>
@@ -294,8 +289,7 @@ namespace TestGenerator.Migrations
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CorrectAnswer")
                         .HasColumnType("nvarchar(max)");
@@ -389,10 +383,6 @@ namespace TestGenerator.Migrations
                     b.Property<bool>("IsCorrect")
                         .HasColumnType("bit");
 
-                    b.Property<decimal>("KeywordMatchPercentage")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
-
                     b.Property<int>("Points")
                         .HasColumnType("int");
 
@@ -452,6 +442,9 @@ namespace TestGenerator.Migrations
                     b.Property<decimal>("Grade")
                         .HasPrecision(3, 2)
                         .HasColumnType("decimal(3,2)");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
 
                     b.Property<int>("MaxScore")
                         .HasColumnType("int");

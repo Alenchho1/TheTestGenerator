@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using TestGenerator.Data;
 using TestGenerator.Models;
 using TestGenerator.Services;
+using TestGenerator.Services.Interfaces;
+using TestGenerator.Services.Implementations;
 using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,9 +27,14 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => {
     .AddDefaultTokenProviders()
     .AddDefaultUI();
 
-// Регистрация на TestEvaluationService
-builder.Services.AddScoped<TestEvaluationService>();
+// Register services
+builder.Services.AddScoped<ITestService, TestService>();
+builder.Services.AddScoped<IQuestionService, QuestionService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ITestResultService, TestResultService>();
 builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<TestEvaluationService>();
+builder.Services.AddScoped<DataInitializationService>();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
@@ -67,54 +74,57 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 
-// Create admin role and user
+// Initialize database and seed data
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        await context.Database.MigrateAsync();
 
-        // Create Admin role if it doesn't exist
-        if (!await roleManager.RoleExistsAsync("Admin"))
-        {
-            await roleManager.CreateAsync(new IdentityRole("Admin"));
-        }
-
-        // Create Teacher role if it doesn't exist
-        if (!await roleManager.RoleExistsAsync("Teacher"))
-        {
-            await roleManager.CreateAsync(new IdentityRole("Teacher"));
-        }
-
-        // Create admin user if it doesn't exist
-        var adminEmail = "admin@testgenerator.com";
-        var adminUser = await userManager.FindByEmailAsync(adminEmail);
-
-        if (adminUser == null)
-        {
-            adminUser = new ApplicationUser
-            {
-                UserName = adminEmail,
-                Email = adminEmail,
-                FirstName = "Admin",
-                LastName = "User",
-                EmailConfirmed = true
-            };
-
-            var result = await userManager.CreateAsync(adminUser, "Admin123!");
-            if (result.Succeeded)
-            {
-                await userManager.AddToRoleAsync(adminUser, "Admin");
-            }
-        }
+        var initService = services.GetRequiredService<DataInitializationService>();
+        await initService.InitializeAsync();
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while creating admin role and user");
+        logger.LogError(ex, "An error occurred while initializing the database");
     }
 }
+
+// Middleware for automatic role assignment
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/Identity/Account/Register") && 
+        context.Request.Method == "POST")
+    {
+        using (var scope = app.Services.CreateScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var form = await context.Request.ReadFormAsync();
+            var email = form["Input.Email"].ToString();
+
+            await next();
+
+            var user = await userManager.FindByEmailAsync(email);
+            if (user != null)
+            {
+                if (email.EndsWith("@testgenerator.com"))
+                {
+                    await userManager.AddToRoleAsync(user, "Teacher");
+                }
+                else
+                {
+                    await userManager.AddToRoleAsync(user, "Student");
+                }
+            }
+        }
+    }
+    else
+    {
+        await next();
+    }
+});
 
 app.Run();

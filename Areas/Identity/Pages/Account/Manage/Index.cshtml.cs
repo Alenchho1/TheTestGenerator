@@ -57,8 +57,8 @@ namespace TestGenerator.Areas.Identity.Pages.Account.Manage
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
             [Required]
-            [Display(Name = "First Name")]
-            [StringLength(50, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 2)]
+            [Display(Name = "Име")]
+            [StringLength(50, ErrorMessage = "Името трябва да е между {2} и {1} символа.", MinimumLength = 2)]
             public string FirstName { get; set; }
 
             /// <summary>
@@ -66,8 +66,8 @@ namespace TestGenerator.Areas.Identity.Pages.Account.Manage
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
             [Required]
-            [Display(Name = "Last Name")]
-            [StringLength(50, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 2)]
+            [Display(Name = "Фамилия")]
+            [StringLength(50, ErrorMessage = "Фамилията трябва да е между {2} и {1} символа.", MinimumLength = 2)]
             public string LastName { get; set; }
 
             /// <summary>
@@ -75,7 +75,7 @@ namespace TestGenerator.Areas.Identity.Pages.Account.Manage
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
             [Phone]
-            [Display(Name = "Phone number")]
+            [Display(Name = "Телефонен номер")]
             public string PhoneNumber { get; set; }
         }
 
@@ -99,7 +99,7 @@ namespace TestGenerator.Areas.Identity.Pages.Account.Manage
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Не може да се намери потребител с ID '{_userManager.GetUserId(User)}'.");
             }
 
             await LoadAsync(user);
@@ -126,7 +126,7 @@ namespace TestGenerator.Areas.Identity.Pages.Account.Manage
                 var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
                 if (!setPhoneResult.Succeeded)
                 {
-                    StatusMessage = "Unexpected error when trying to set phone number.";
+                    StatusMessage = "Възникна неочаквана грешка при промяната на телефонния номер.";
                     return RedirectToPage();
                 }
             }
@@ -136,7 +136,7 @@ namespace TestGenerator.Areas.Identity.Pages.Account.Manage
             await _userManager.UpdateAsync(user);
 
             await _signInManager.RefreshSignInAsync(user);
-            StatusMessage = "Your profile has been updated";
+            StatusMessage = "Вашият профил беше успешно обновен";
             return RedirectToPage();
         }
     }

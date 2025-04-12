@@ -8,10 +8,11 @@ using TestGenerator.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using TestGenerator.Services;
+using TestGenerator.Services.Interfaces;
 
 namespace TestGenerator.Controllers
 {
-    [Authorize(Roles = "Admin,Teacher")]
+    [Authorize(Roles = "Teacher")]
     public class QuestionController : BaseController
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -83,7 +84,7 @@ namespace TestGenerator.Controllers
                     var user = await _userManager.GetUserAsync(User);
                     if (user == null)
                     {
-                        _logger.LogError("User not found while creating multiple choice question");
+                        _logger.LogError("Потребителят не е намерен при създаване на въпрос с множествен избор");
                         SetAlert("Грешка: Потребителят не е намерен", "danger");
                         return RedirectToAction("Login", "Account");
                     }
@@ -125,7 +126,7 @@ namespace TestGenerator.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error creating multiple choice question");
+                    _logger.LogError(ex, "Грешка при създаване на въпрос с множествен избор");
                     SetAlert("Възникна грешка при създаването на въпроса", "danger");
                 }
             }
@@ -133,7 +134,7 @@ namespace TestGenerator.Controllers
             {
                 foreach (var modelError in ModelState.Values.SelectMany(v => v.Errors))
                 {
-                    _logger.LogError($"Model validation error: {modelError.ErrorMessage}");
+                    _logger.LogError($"Грешка при валидация на модела: {modelError.ErrorMessage}");
                 }
             }
 
@@ -155,12 +156,12 @@ namespace TestGenerator.Controllers
                     var user = await _userManager.GetUserAsync(User);
                     if (user == null)
                     {
-                        _logger.LogError("User not found while creating open ended question");
+                        _logger.LogError("Потребителят не е намерен при създаване на отворен въпрос");
                         SetAlert("Грешка: Потребителят не е намерен", "danger");
                         return RedirectToAction("Login", "Account");
                     }
 
-                    _logger.LogInformation($"Creating open ended question for user {user.Id}");
+                    _logger.LogInformation($"Създаване на отворен въпрос за потребител {user.Id}");
 
                     var question = new Question
                     {
@@ -189,7 +190,7 @@ namespace TestGenerator.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error creating open ended question");
+                    _logger.LogError(ex, "Грешка при създаване на отворен въпрос");
                     SetAlert("Възникна грешка при създаването на въпроса", "danger");
                 }
             }
@@ -197,7 +198,7 @@ namespace TestGenerator.Controllers
             {
                 foreach (var modelError in ModelState.Values.SelectMany(v => v.Errors))
                 {
-                    _logger.LogError($"Model validation error: {modelError.ErrorMessage}");
+                    _logger.LogError($"Грешка при валидация на модела: {modelError.ErrorMessage}");
                 }
             }
 
@@ -300,7 +301,7 @@ namespace TestGenerator.Controllers
                     }
 
                     await _context.SaveChangesAsync();
-                    SetAlert("Question updated successfully", "success");
+                    SetAlert("Въпросът беше обновен успешно", "success");
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
@@ -321,7 +322,7 @@ namespace TestGenerator.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin,Teacher")]
+        [Authorize(Roles = "Teacher")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -344,7 +345,7 @@ namespace TestGenerator.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Teacher")]
+        [Authorize(Roles = "Teacher")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var question = await _context.Questions
@@ -369,7 +370,7 @@ namespace TestGenerator.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting question");
+                _logger.LogError(ex, "Грешка при изтриване на въпроса");
                 SetAlert("Грешка при изтриване на въпроса", "danger");
             }
 

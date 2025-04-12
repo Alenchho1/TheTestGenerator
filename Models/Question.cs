@@ -1,76 +1,50 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TestGenerator.Models
 {
-      /// Модел за въпрос в системата
+    /// Модел за въпрос в системата
     public class Question
     {
-        /// Уникален идентификатор на въпроса 
         public int Id { get; set; }
 
-          /// Съдържание на въпроса
-          
         [Required(ErrorMessage = "Съдържанието на въпроса е задължително")]
-        [MinLength(10, ErrorMessage = "Съдържанието трябва да бъде поне 10 символа")]
-        public string Content { get; set; }
+        [StringLength(1000, MinimumLength = 3, ErrorMessage = "Съдържанието трябва да е между 3 и 1000 символа")]
+        public string Content { get; set; } = null!;
 
-        
-        /// Тип на въпроса (с избираем или отворен отговор)
-        
         [Required(ErrorMessage = "Типът на въпроса е задължителен")]
         public QuestionType Type { get; set; }
 
-        
-        /// Ниво на трудност от 1 до 5
-        
-        [Range(1, 5, ErrorMessage = "Трудността трябва да бъде между 1 и 5")]
+        [Range(1, 5, ErrorMessage = "Нивото на трудност трябва да е между 1 и 5")]
         public int DifficultyLevel { get; set; }
-        
-        /// Верен отговор за въпроси със свободен текст
+
         public string? CorrectAnswer { get; set; }
 
-        /// Възможни отговори за въпроси с избираем отговор
         public List<Answer>? PossibleAnswers { get; set; }
 
-        /// Ключови думи за оценяване на отворени въпроси
         public string? Keywords { get; set; }
 
-        /// Път до изображение, свързано с въпроса
         public string? ImagePath { get; set; }
-
-        /// Точки за верен отговор
-        [Range(1, 100, ErrorMessage = "Точките трябва да бъдат между 1 и 100")]
+        [Range(1, 100, ErrorMessage = "Точките трябва да са между 1 и 100")]
         public int Points { get; set; }
 
-        /// Идентификатор на категорията
-        [Required(ErrorMessage = "Категорията е задължителна")]
         public int CategoryId { get; set; }
 
-        /// Категория на въпроса
-        public Category Category { get; set; }
+        public Category Category { get; set; } = null!;
 
-        /// Идентификатор на създателя
-        [Required(ErrorMessage = "Създателят е задължителен")]
-        public string CreatorId { get; set; }
+        public string CreatorId { get; set; } = null!;
 
-        /// Създател на въпроса
-        public ApplicationUser Creator { get; set; }
+        public ApplicationUser Creator { get; set; } = null!;
 
-        /// Дата на създаване
-        [Required]
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        /// Дата на последна модификация
         public DateTime? LastModifiedAt { get; set; }
     }
 
     /// Типове въпроси в системата
     public enum QuestionType
     {
-        /// Въпрос с избираем отговор
         MultipleChoice,
-
-        /// Въпрос със свободен отговор
         OpenEnded
     }
 } 

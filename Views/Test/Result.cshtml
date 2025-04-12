@@ -1,184 +1,90 @@
 @model TestGenerator.Models.TestResult
 
 @{
-    ViewData["Title"] = "Резултати от теста";
+    ViewData["Title"] = "Резултат от тест";
 }
 
-<div class="card shadow-sm mb-4">
-    <div class="card-header bg-white text-dark">
-        <h3 class="mb-0">Резултати от теста: @Model.Test.Title</h3>
+<div class="container">
+    <h2>Резултат от тест: @Model.Test.Title</h2>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <h4>Резултат: @Model.Score.ToString("F2")%</h4>
+                </div>
+                <div class="col-md-4">
+                    <h4>Верни отговори: @Model.CorrectAnswers / @Model.TotalQuestions</h4>
+                </div>
+                <div class="col-md-4">
+                    <h4>Време: @((Model.EndTime - Model.StartTime).ToString(@"hh\:mm\:ss"))</h4>
+                </div>
+            </div>
+
+            <div class="alert @(Model.Score >= 50 ? "alert-success" : "alert-danger") mt-4">
+                <p>@Model.Feedback</p>
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card bg-light">
-                    <div class="card-body text-center">
-                        <h5 class="card-title text-primary">Оценка</h5>
-                        <h2 class="display-4 mb-0">@Model.Grade.ToString("F2")</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-light">
-                    <div class="card-body text-center">
-                        <h5 class="card-title text-success">Точки</h5>
-                        <h2 class="display-4 mb-0">@Model.Score / @Model.MaxScore</h2>
-                        <p class="text-muted mb-0">@Model.PercentageScore.ToString("F1")%</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-light">
-                    <div class="card-body text-center">
-                        <h5 class="card-title text-info">Верни отговори</h5>
-                        <h2 class="display-4 mb-0">@Model.CorrectAnswersCount / @Model.TotalQuestionsCount</h2>
-                    </div>
-                </div>
-            </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Преглед на отговорите</h3>
         </div>
-
-        <div class="alert @(Model.PercentageScore >= 50 ? "alert-success" : "alert-danger")">
-            <h4 class="alert-heading">
-                @if (Model.PercentageScore >= 50)
-                {
-                    <i class="bi bi-check-circle-fill"></i>
-                }
-                else
-                {
-                    <i class="bi bi-x-circle-fill"></i>
-                }
-                Обратна връзка
-            </h4>
-            <p class="mb-0">@Model.Feedback</p>
-        </div>
-
-        <h4 class="mb-4">Детайлен преглед на отговорите</h4>
-
-        @foreach (var answer in Model.AnswerResults.OrderBy(ar => ar.Question.Id))
-        {
-            <div class="card mb-3 @(answer.IsCorrect ? "border-success" : "border-danger")">
-                <div class="card-header @(answer.IsCorrect ? "bg-success" : "bg-danger") bg-opacity-10">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="badge @(answer.IsCorrect ? "bg-success" : "bg-danger") me-2">
-                                @if (answer.IsCorrect)
-                                {
-                                    <i class="bi bi-check-lg"></i>
-                                }
-                                else
-                                {
-                                    <i class="bi bi-x-lg"></i>
-                                }
-                                @answer.Points точки
-                            </span>
-                            <span class="badge bg-secondary">@answer.Question.Category.Name</span>
-                        </div>
+        <div class="card-body">
+            @foreach (var answer in Model.AnswerResults)
+            {
+                <div class="card mb-3 @(answer.IsCorrect ? "border-success" : "border-danger")">
+                    <div class="card-header">
+                        <h5>@answer.Question.Content</h5>
                     </div>
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">@answer.Question.Content</h5>
-
-                    @if (!string.IsNullOrEmpty(answer.Question.ImagePath))
-                    {
-                        <div class="mb-3">
-                            <img src="@Url.Content(answer.Question.ImagePath)" alt="Question Image" class="img-fluid rounded" style="max-height: 200px" />
-                        </div>
-                    }
-
-                    @if (answer.Question.Type == TestGenerator.Models.QuestionType.MultipleChoice)
-                    {
-                        <div class="list-group">
-                            @foreach (var option in answer.Question.PossibleAnswers)
-                            {
-                                var isSelected = option.Id == answer.SelectedAnswerId;
-                                var isCorrect = option.IsCorrect;
-                                string itemClass = "";
-                                string iconClass = "";
-                                
-                                if (isSelected && isCorrect)
-                                {
-                                    itemClass = "list-group-item-success";
-                                    iconClass = "bi-check-circle-fill text-success";
-                                }
-                                else if (isSelected && !isCorrect)
-                                {
-                                    itemClass = "list-group-item-danger";
-                                    iconClass = "bi-x-circle-fill text-danger";
-                                }
-                                else if (!isSelected && isCorrect)
-                                {
-                                    itemClass = "list-group-item-success bg-opacity-25";
-                                    iconClass = "bi-check-circle text-success";
-                                }
-                                else
-                                {
-                                    iconClass = "bi-circle text-muted";
-                                }
-
-                                <div class="list-group-item @itemClass">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <i class="bi @iconClass me-2"></i>
-                                            @option.Content
-                                        </div>
-                                        @if (isCorrect)
-                                        {
-                                            <span class="badge bg-success">Верен отговор</span>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="mb-3">
-                            <label class="form-label">Вашият отговор:</label>
-                            <div class="p-3 rounded @(answer.IsCorrect ? "bg-success" : "bg-danger") bg-opacity-10">
-                                @(string.IsNullOrEmpty(answer.SubmittedAnswer) ? "Не е даден отговор" : answer.SubmittedAnswer)
-                            </div>
-                        </div>
-
-                        @if (!answer.IsCorrect)
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(answer.Question.ImagePath))
                         {
                             <div class="mb-3">
-                                <label class="form-label fw-bold">Верен отговор:</label>
-                                <div class="p-3 rounded bg-success bg-opacity-10">
-                                    @answer.Question.CorrectAnswer
-                                </div>
+                                <img src="@answer.Question.ImagePath" alt="Изображение към въпроса" class="img-fluid" style="max-height: 300px;" />
                             </div>
                         }
-
-                        @if (!string.IsNullOrEmpty(answer.FeedbackNotes))
+                        
+                        <p><strong>Вашият отговор:</strong> @answer.SubmittedAnswer</p>
+                        
+                        @if (!answer.IsCorrect)
                         {
-                            <div class="alert alert-info">
-                                <i class="bi bi-info-circle"></i> @answer.FeedbackNotes
-                            </div>
+                            if (answer.Question.Type == TestGenerator.Models.QuestionType.MultipleChoice)
+                            {
+                                var correctAnswer = answer.Question.PossibleAnswers.FirstOrDefault(a => a.IsCorrect);
+                                if (correctAnswer != null)
+                                {
+                                    <p><strong>Правилен отговор:</strong> @correctAnswer.Content</p>
+                                }
+                            }
+                            else // OpenEnded
+                            {
+                                <p><strong>Правилен отговор:</strong> @answer.Question.CorrectAnswer</p>
+                                if (!string.IsNullOrEmpty(answer.Question.Keywords))
+                                {
+                                    <div class="alert alert-info">
+                                        <p><strong>Ключови думи за оценяване:</strong></p>
+                                        <p>@string.Join(", ", answer.Question.Keywords.Split(','))</p>
+                                    </div>
+                                }
+                            }
                         }
-                    }
+                        
+                        <p class="@(answer.IsCorrect ? "text-success" : "text-danger")">
+                            <strong>@(answer.IsCorrect ? "Правилен отговор" : "Грешен отговор")</strong>
+                            @if (!answer.IsCorrect && answer.Question.Type == TestGenerator.Models.QuestionType.OpenEnded)
+                            {
+                                <span> (Съвпадение с ключови думи: @answer.KeywordMatchPercentage.ToString("F0")%)</span>
+                            }
+                        </p>
+                    </div>
                 </div>
-            </div>
-        }
-
-        <div class="d-flex justify-content-between mt-4">
-            <a asp-action="Index" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Обратно към тестовете
-            </a>
-            <a asp-action="Take" asp-route-id="@Model.TestId" class="btn btn-primary">
-                <i class="bi bi-arrow-repeat"></i> Опитай отново
-            </a>
+            }
         </div>
     </div>
-</div>
 
-@section Styles {
-    <style>
-        .display-4 {
-            font-size: 2.5rem;
-        }
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 500;
-        }
-    </style>
-} 
+    <div class="text-center mt-4">
+        <a asp-action="Index" class="btn btn-primary">Обратно към тестовете</a>
+    </div>
+</div> 

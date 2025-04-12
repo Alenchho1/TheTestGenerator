@@ -10,198 +10,154 @@ namespace TestGenerator.Services
         // Скала за оценяване
         private static readonly Dictionary<decimal, decimal> GradeScale = new()
         {
-            { 90, 6.00m }, // Отличен
-            { 80, 5.00m }, // Много добър
-            { 70, 4.00m }, // Добър
-            { 60, 3.50m }, // Среден +
-            { 50, 3.00m }, // Среден
-            { 0, 2.00m }   // Слаб
+            { 90m, 6.00m }, // Отличен
+            { 80m, 5.00m }, // Много добър
+            { 70m, 4.00m }, // Добър
+            { 60m, 3.50m }, // Среден +
+            { 50m, 3.00m }, // Среден
+            { 0m, 2.00m }   // Слаб
         };
 
-        public TestResult EvaluateTest(Test test, List<(int QuestionId, string Answer)> submittedAnswers, DateTime startTime)
+        public TestResult EvaluateTest(Test test, List<(int QuestionId, string SubmittedAnswer)> submittedAnswers, DateTime startTime)
         {
-            var result = new TestResult
+            var testResult = new TestResult
             {
                 TestId = test.Id,
                 StartTime = startTime,
                 EndTime = DateTime.Now,
-                IsCompleted = true,
-                TotalQuestionsCount = test.TestQuestions.Count,
-                AnswerResults = new List<TestAnswerResult>()
+                MaxScore = test.TotalPoints
             };
+
+            var answerResults = new List<TestAnswerResult>();
+            int earnedPoints = 0;
 
             foreach (var testQuestion in test.TestQuestions)
             {
                 var question = testQuestion.Question;
-                var submittedAnswer = submittedAnswers.FirstOrDefault(a => a.QuestionId == question.Id);
-                var answerResult = EvaluateQuestion(question, submittedAnswer.Answer);
-                result.AnswerResults.Add(answerResult);
-            }
+                var submission = submittedAnswers.FirstOrDefault(sa => sa.QuestionId == question.Id);
+                var submittedAnswer = submission.SubmittedAnswer ?? "";
+                var isCorrect = false;
+                var points = 0;
+                decimal keywordMatchPercentage = 0;
 
-            // Изчисляване на общите резултати
-            result.Score = result.AnswerResults.Sum(ar => ar.Points);
-            result.MaxScore = test.TotalPoints;
-            result.CorrectAnswersCount = result.AnswerResults.Count(ar => ar.IsCorrect);
-            result.PercentageScore = (decimal)result.Score / result.MaxScore * 100;
-            result.Grade = CalculateGrade(result.PercentageScore);
-
-            // Генериране на обратна връзка
-            result.Feedback = GenerateFeedback(result);
-
-            return result;
-        }
-
-        private TestAnswerResult EvaluateQuestion(Question question, string submittedAnswer)
-        {
-            var result = new TestAnswerResult
-            {
-                QuestionId = question.Id,
-                SubmittedAnswer = submittedAnswer,
-                Points = 0,
-                FeedbackNotes = string.Empty // Инициализиране с празен стринг
-            };
-
-            if (question.Type == QuestionType.MultipleChoice)
-            {
-                result = EvaluateMultipleChoiceQuestion(question, submittedAnswer, result);
-            }
-            else
-            {
-                result = EvaluateOpenEndedQuestion(question, submittedAnswer, result);
-            }
-
-            return result;
-        }
-
-        private TestAnswerResult EvaluateMultipleChoiceQuestion(Question question, string submittedAnswer, TestAnswerResult result)
-        {
-            if (int.TryParse(submittedAnswer, out int selectedAnswerId))
-            {
-                result.SelectedAnswerId = selectedAnswerId;
-                var correctAnswer = question.PossibleAnswers.FirstOrDefault(a => a.IsCorrect);
-                result.IsCorrect = correctAnswer?.Id == selectedAnswerId;
-                result.Points = result.IsCorrect ? question.Points : 0;
-                
-                // Добавяне на обратна връзка за въпроси с множествен избор
-                result.FeedbackNotes = result.IsCorrect 
-                    ? "Правилен отговор!" 
-                    : "Грешен отговор. Моля, прегледайте материала отново.";
-            }
-            else
-            {
-                result.FeedbackNotes = "Невалиден отговор.";
-            }
-
-            return result;
-        }
-
-        private TestAnswerResult EvaluateOpenEndedQuestion(Question question, string submittedAnswer, TestAnswerResult result)
-        {
-            if (string.IsNullOrEmpty(submittedAnswer))
-            {
-                result.FeedbackNotes = "Не е предоставен отговор.";
-                return result;
-            }
-
-            // Нормализиране на отговорите (премахване на излишни интервали, малки букви)
-            var normalizedSubmittedAnswer = submittedAnswer.Trim().ToLower();
-            var normalizedCorrectAnswer = question.CorrectAnswer?.Trim().ToLower() ?? "";
-            
-            // Разделяне на ключовите думи и премахване на празните
-            var keywords = (question.Keywords?.Split(',')
-                .Select(k => k.Trim().ToLower())
-                .Where(k => !string.IsNullOrEmpty(k))
-                .ToList()) ?? new List<string>();
-
-            // Проверка за точно съвпадение
-            if (normalizedSubmittedAnswer == normalizedCorrectAnswer)
-            {
-                result.Points = question.Points;
-                result.IsCorrect = true;
-                result.KeywordMatchPercentage = 100;
-                result.FeedbackNotes = "Перфектен отговор! Напълно съвпада с очаквания отговор.";
-                return result;
-            }
-
-            // Изчисляване на съвпадение на ключови думи
-            int matchedKeywords = 0;
-            foreach (var keyword in keywords)
-            {
-                if (normalizedSubmittedAnswer.Contains(keyword))
+                if (question.Type == QuestionType.MultipleChoice)
                 {
-                    matchedKeywords++;
+                    var correctAnswer = question.PossibleAnswers?.FirstOrDefault(a => a.IsCorrect);
+                    var selectedAnswer = question.PossibleAnswers?.FirstOrDefault(a => a.Id.ToString() == submittedAnswer);
+                    isCorrect = correctAnswer != null && selectedAnswer != null && correctAnswer.Id == selectedAnswer.Id;
+                    submittedAnswer = selectedAnswer?.Content ?? submittedAnswer;
+                    points = isCorrect ? question.Points : 0;
                 }
+                else // OpenEnded
+                {
+                    // Проверка за точно съвпадение
+                    if (!string.IsNullOrEmpty(question.CorrectAnswer))
+                    {
+                        isCorrect = submittedAnswer.Trim().Equals(question.CorrectAnswer.Trim(), StringComparison.OrdinalIgnoreCase);
+                    }
+
+                    // Ако няма точно съвпадение, проверяваме ключовите думи
+                    if (!isCorrect && !string.IsNullOrEmpty(question.Keywords))
+                    {
+                        var keywords = question.Keywords.Split(',').Select(k => k.Trim().ToLower()).ToList();
+                        var submittedWords = submittedAnswer.ToLower().Split(new[] { ' ', ',', '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
+                        
+                        int matchedKeywords = keywords.Count(keyword => 
+                            submittedWords.Any(word => word.Contains(keyword) || keyword.Contains(word)));
+                        
+                        keywordMatchPercentage = Math.Round((decimal)matchedKeywords / keywords.Count * 100, 2);
+
+                        // Определяне на точките според процента съвпадение
+                        if (keywordMatchPercentage >= 90)
+                        {
+                            points = question.Points;
+                            isCorrect = true;
+                        }
+                        else if (keywordMatchPercentage >= 75)
+                        {
+                            points = (int)(question.Points * 0.75m);
+                        }
+                        else if (keywordMatchPercentage >= 50)
+                        {
+                            points = (int)(question.Points * 0.50m);
+                        }
+                        else if (keywordMatchPercentage >= 25)
+                        {
+                            points = (int)(question.Points * 0.25m);
+                        }
+                    }
+                    else if (isCorrect)
+                    {
+                        points = question.Points;
+                    }
+                }
+
+                earnedPoints += points;
+
+                answerResults.Add(new TestAnswerResult
+                {
+                    QuestionId = question.Id,
+                    SubmittedAnswer = submittedAnswer,
+                    IsCorrect = isCorrect,
+                    Points = points,
+                    KeywordMatchPercentage = keywordMatchPercentage,
+                    FeedbackNotes = GenerateFeedbackNotes(isCorrect, points, question.Points, keywordMatchPercentage)
+                });
             }
 
-            // Изчисляване на процента съвпадение
-            result.KeywordMatchPercentage = keywords.Any() 
-                ? (decimal)matchedKeywords / keywords.Count * 100 
+            testResult.AnswerResults = answerResults;
+            
+            decimal percentageScore = test.TotalPoints > 0 
+                ? Math.Round((decimal)earnedPoints / test.TotalPoints * 100, 2)
                 : 0;
 
-            // Определяне на точките базирано на процента съвпадение
-            if (result.KeywordMatchPercentage >= 90)
-            {
-                result.Points = question.Points;
-                result.IsCorrect = true;
-            }
-            else if (result.KeywordMatchPercentage >= 75)
-            {
-                result.Points = (int)(question.Points * 0.75);
-                result.IsCorrect = true;
-            }
-            else if (result.KeywordMatchPercentage >= 50)
-            {
-                result.Points = (int)(question.Points * 0.5);
-                result.IsCorrect = false;
-            }
-            else if (result.KeywordMatchPercentage >= 25)
-            {
-                result.Points = (int)(question.Points * 0.25);
-                result.IsCorrect = false;
-            }
+            testResult.Score = percentageScore;
+            testResult.PercentageScore = percentageScore;
+            testResult.Grade = CalculateGrade(percentageScore);
+            testResult.Feedback = GenerateFeedback(testResult);
 
-            // Добавяне на подробна обратна връзка
-            result.FeedbackNotes = GenerateDetailedOpenEndedFeedback(
-                result.KeywordMatchPercentage,
-                matchedKeywords,
-                keywords.Count,
-                question.Points,
-                result.Points
-            );
+            return testResult;
+        }
 
-            return result;
+        private string GenerateFeedbackNotes(bool isCorrect, int earnedPoints, int totalPoints, decimal keywordMatchPercentage)
+        {
+            if (isCorrect)
+            {
+                return "Правилен отговор!";
+            }
+            else if (keywordMatchPercentage > 0)
+            {
+                return $"Частично верен отговор. Съвпадение с ключови думи: {keywordMatchPercentage}%. Получени точки: {earnedPoints} от {totalPoints}.";
+            }
+            else
+            {
+                return "Грешен отговор.";
+            }
         }
 
         private decimal CalculateGrade(decimal percentageScore)
         {
-            foreach (var grade in GradeScale.OrderByDescending(g => g.Key))
-            {
-                if (percentageScore >= grade.Key)
-                {
-                    return grade.Value;
-                }
-            }
-            return 2.00m; // Минимална оценка
+            // Проверяваме дали процентът е в съответния диапазон и връщаме съответната оценка
+            if (percentageScore >= 90) return 6.00m;
+            if (percentageScore >= 80) return 5.00m;
+            if (percentageScore >= 70) return 4.00m;
+            if (percentageScore >= 60) return 3.50m;
+            if (percentageScore >= 50) return 3.00m;
+            return 2.00m;
         }
 
         private string GenerateFeedback(TestResult result)
         {
-            var feedback = new System.Text.StringBuilder();
+            var gradeText = result.Grade >= 5.50m ? "Отличен" :
+                           result.Grade >= 4.50m ? "Много добър" :
+                           result.Grade >= 3.50m ? "Добър" :
+                           result.Grade >= 3.00m ? "Среден" : "Слаб";
 
-            if (result.PercentageScore >= PASS_THRESHOLD)
-            {
-                feedback.AppendLine($"Поздравления! Вие преминахте теста успешно с оценка {result.Grade:F2}.");
-            }
-            else
-            {
-                feedback.AppendLine($"За съжаление не успяхте да преминете теста. Вашата оценка е {result.Grade:F2}.");
-            }
-
-            feedback.AppendLine($"Верни отговори: {result.CorrectAnswersCount} от {result.TotalQuestionsCount}");
-            feedback.AppendLine($"Общ брой точки: {result.Score} от възможни {result.MaxScore}");
-            feedback.AppendLine($"Процент успеваемост: {result.PercentageScore:F2}%");
-
-            return feedback.ToString();
+            return $"{(result.PercentageScore >= PASS_THRESHOLD ? "Поздравления! Вие преминахте теста успешно" : "За съжаление не успяхте да преминете теста")} " +
+                   $"с оценка {result.Grade:F2} ({gradeText}).\n" +
+                   $"Верни отговори: {result.CorrectAnswers} от {result.TotalQuestions}\n" +
+                   $"Процент успеваемост: {result.PercentageScore:F2}%\n" +
+                   $"Получени точки: {result.AnswerResults.Sum(ar => ar.Points)} от {result.MaxScore}";
         }
 
         private string GenerateDetailedOpenEndedFeedback(decimal matchPercentage, int matchedCount, int totalKeywords, int maxPoints, int earnedPoints)

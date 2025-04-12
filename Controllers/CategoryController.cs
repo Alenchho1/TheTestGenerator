@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace TestGenerator.Controllers
 {
-    [Authorize(Roles = "Admin,Teacher")]
+    [Authorize(Roles = "Teacher")]
     public class CategoryController : BaseController
     {
         private readonly ILogger<CategoryController> _logger;
@@ -128,7 +128,7 @@ namespace TestGenerator.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin,Teacher")]
+        [Authorize(Roles = "Teacher")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -148,9 +148,9 @@ namespace TestGenerator.Controllers
             return View(category);
         }
 
-        [HttpPost]
+        [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Teacher")]
+        [Authorize(Roles = "Teacher")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var category = await _context.Categories
